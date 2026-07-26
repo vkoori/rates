@@ -1,0 +1,53 @@
+name: Scrape Bonbast rates
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour, on the hour
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  packages: read
+
+concurrency:
+  group: scrape-bonbast-rates
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image name (lowercase)
+        id: image
+        run: echo "name=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Pull pre-built scraper image
+        run: docker pull ${{ steps.image.outputs.name }}:latest
+
+      - name: Run scraper
+        run: docker run --name scraper ${{ steps.image.outputs.name }}:latest
+
+      - name: Copy rates.json out of the container
+        run: docker cp scraper:/app/rates.json ./rates.json
+
+      - name: Commit rates.json if it changed
+        run: |
+          if git diff --quiet -- rates.json; then
+            echo "No changes to rates.json"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add rates.json
+          git commit -m "chore: update rates.json [skip ci]"
+          git push

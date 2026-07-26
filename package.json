@@ -1,0 +1,18 @@
+{
+  "name": "bonbast-rates-renderer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless Chrome renderer used by bonbast_rates.php to execute page JavaScript before DOM extraction.",
+  "main": "render.js",
+  "scripts": {
+    "render": "node render.js --url=https://www.bonbast.com/",
+    "scrape": "php bonbast_rates.php --stdout"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  },
+  "license": "MIT"
+}
