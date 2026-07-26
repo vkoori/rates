@@ -28,7 +28,7 @@ jobs:
 
       - name: Commit rates.json if it changed
         run: |
-          if git diff --quiet -- rates.json; then
+          if [ -z "$(git status --porcelain -- rates.json)" ]; then
             echo "No changes to rates.json"
             exit 0
           fi
