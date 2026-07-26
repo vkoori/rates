@@ -2,12 +2,11 @@ name: Scrape Bonbast rates
 
 on:
   schedule:
-    - cron: '47 * * * *'  # every hour, at :47
+    - cron: '5 * * * *'  # TODO: revert to a spread-out minute after testing (currently ~next min for a live test)
   workflow_dispatch: {}
 
 permissions:
   contents: write
-  packages: read
 
 concurrency:
   group: scrape-bonbast-rates
@@ -20,25 +19,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Compute image name (lowercase)
-        id: image
-        run: echo "name=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
-
-      - name: Pull pre-built scraper image
-        run: docker pull ${{ steps.image.outputs.name }}:latest
-
-      - name: Run scraper
-        run: docker run --name scraper ${{ steps.image.outputs.name }}:latest
-
-      - name: Copy rates.json out of the container
-        run: docker cp scraper:/app/rates.json ./rates.json
+      - name: Run scraper in base image
+        run: |
+          docker run --rm \
+            -v "$PWD:/app" -w /app \
+            ghcr.io/vkoori/php_node:24.18.0-bookworm-slim \
+            sh -c "npm ci && npm run scrape"
 
       - name: Commit rates.json if it changed
         run: |
