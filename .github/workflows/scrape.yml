@@ -2,7 +2,7 @@ name: Scrape Bonbast rates
 
 on:
   schedule:
-    - cron: '5 * * * *'  # TODO: revert to a spread-out minute after testing (currently ~next min for a live test)
+    - cron: '23 * * * *'  # every hour, at :23
   workflow_dispatch: {}
 
 permissions:
