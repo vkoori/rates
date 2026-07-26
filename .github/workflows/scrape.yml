@@ -2,7 +2,7 @@ name: Scrape Bonbast rates
 
 on:
   schedule:
-    - cron: '26 * * * *'  # every hour, at :23
+    - cron: '30 * * * *'  # every hour, at 30
   workflow_dispatch: {}
 
 permissions:
