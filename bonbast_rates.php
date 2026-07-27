@@ -877,10 +877,13 @@ final class Application
         $html = $renderer->render($this->config->url);
 
         $rates = (new RateExtractor($this->logger))->extract($html);
-        $rates['generated_at'] = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('c');
+        $payload = [
+            'rates' => $rates,
+            'generated_at' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('c'),
+        ];
 
         $writer = new JsonWriter($this->logger);
-        $json = $writer->encode($rates, $this->config->pretty);
+        $json = $writer->encode($payload, $this->config->pretty);
         $writer->write($this->config->outputPath, $json);
 
         if ($this->config->echoToStdout) {
